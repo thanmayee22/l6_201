@@ -73,23 +73,61 @@ describe("Todo test suite", () => {
     expect(response.statusCode).toBe(302);
   });
 
+<<<<<<< HEAD
   test("Update a todo with requested ID as complete / incomplete", async () => {
     const agent = request.agent(server);
     await login(agent, "user.a@test.com", "123456");
     let res = await agent.get("/todos");
     let csrfToken = extractCsrfToken(res);
+=======
+  test("Mark todo as a completed (updating todo)", async () => {
+    var agent = request.agent(server);
+    await login(agent, "user.a@test.com", "123456789");
+    var res = await agent.get("/todos");
+    var csrfToken = extractCsrfToken(res);
+>>>>>>> f41d96e (updated tests)
     await agent.post("/todos").send({
-      title: "Buy milk",
+      title: "play cricket",
       dueDate: new Date().toISOString(),
-      completed: false,
       _csrf: csrfToken,
     });
-    await agent.post("/todos").send({
-      title: "Buy ps3",
-      dueDate: new Date().toISOString(),
-      completed: true,
-      _csrf: csrfToken,
-    });
+
+    const Todos = await agent.get("/todos").set("Accept", "application/json");
+    const parseTodos = JSON.parse(Todos.text);
+    const countTodaysTodos = parseTodos.duetodaytodos.length;
+    const Todo = parseTodos.duetodaytodos[countTodaysTodos - 1];
+    var status = true;
+    res = await agent.get("/todos");
+    csrfToken = extractCsrfToken(res);
+
+
+    const changeTodo = await agent
+      .put(`/todos/${Todo.id}`)
+      .send({ _csrf: csrfToken, completed: status });
+
+    const parseUpadteTodo = JSON.parse(changeTodo.text);
+    expect(parseUpadteTodo.completed).toBe(true);
+  });
+  test("Mark todo as  incompleted (updating todo)", async () => {
+    var agent = request.agent(server);
+    await login(agent, "user.a@test.com", "123456789");
+    var res = await agent.get("/todos");
+    var csrfToken = extractCsrfToken(res);
+    
+    //using previous used test casse status
+    const Todos = await agent.get("/todos").set("Accept", "application/json");
+    const parseTodos = JSON.parse(Todos.text);
+    const countTodaysTodos = parseTodos.duetodaytodos.length;
+    const Todo = parseTodos.duetodaytodos[countTodaysTodos - 1];
+    const status = false;
+  
+    const changeTodo = await agent
+      .put(`/todos/${Todo.id}`)
+      .send({ _csrf: csrfToken, completed: status });
+
+    const parseUpadteTodo = JSON.parse(changeTodo.text);
+    expect(parseUpadteTodo.completed).toBe(false);
+  });
 
     const groupedTodosResponse = await agent
       .get("/todos")
